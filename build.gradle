@@ -1,0 +1,30 @@
+plugins {
+    id 'application'
+}
+
+group = 'com.example'
+version = '1.0.0'
+
+repositories {
+    mavenCentral()
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+def currentOs = org.gradle.internal.os.OperatingSystem.current()
+def javafxPlatform = currentOs.isWindows() ? 'win' : currentOs.isMacOsX() ? 'mac' : 'linux'
+def javafxVersion = '21.0.2'
+
+dependencies {
+    implementation "org.openjfx:javafx-controls:${javafxVersion}:${javafxPlatform}"
+    implementation "org.openjfx:javafx-media:${javafxVersion}:${javafxPlatform}"
+    implementation "org.openjfx:javafx-graphics:${javafxVersion}:${javafxPlatform}"
+}
+
+application {
+    mainClass = 'com.example.musicplayer.MainApp'
+}

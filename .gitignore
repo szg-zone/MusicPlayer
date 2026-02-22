@@ -1,0 +1,6 @@
+out/
+*.class
+music/
+*.wav
+lib/
+data/

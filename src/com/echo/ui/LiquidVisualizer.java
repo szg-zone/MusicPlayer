@@ -30,7 +30,7 @@ public class LiquidVisualizer extends JPanel {
         int w = getWidth();
         int h = getHeight();
 
-        // === Background gradient (dark top → purple mid → pink bottom)
+        // ===== FULL BACKGROUND GRADIENT =====
         GradientPaint bg = new GradientPaint(
                 0, 0, new Color(10, 10, 40),
                 0, h, new Color(150, 40, 90)
@@ -38,23 +38,23 @@ public class LiquidVisualizer extends JPanel {
         g2.setPaint(bg);
         g2.fillRect(0, 0, w, h);
 
-        // === Draw waves (3 thick layers)
+        // ===== WAVES =====
+        drawWave(g2, h * 0.55, 80, 0.012,
+                new Color(150, 80, 220, 180), 1.0);
 
-        drawWave(g2, h * 0.55, 80, 0.015,
-                new Color(150, 80, 220, 200));
+        drawWave(g2, h * 0.60, 60, 0.018,
+                new Color(120, 50, 190, 200), 1.5);
 
-        drawWave(g2, h * 0.60, 60, 0.02,
-                new Color(120, 50, 190, 220));
-
-        drawWave(g2, h * 0.65, 45, 0.025,
-                new Color(90, 30, 150, 240));
+        drawWave(g2, h * 0.65, 45, 0.022,
+                new Color(90, 30, 150, 230), 2.0);
     }
 
     private void drawWave(Graphics2D g2,
                           double baseY,
                           double amplitude,
                           double frequency,
-                          Color color) {
+                          Color color,
+                          double speed) {
 
         int w = getWidth();
         int h = getHeight();
@@ -64,8 +64,11 @@ public class LiquidVisualizer extends JPanel {
 
         for (int x = 0; x <= w; x++) {
 
+            double dynamicAmp = amplitude +
+                    Math.sin(phase * 2 + x * 0.002) * 10;
+
             double y = baseY +
-                    Math.sin((x * frequency) + phase) * amplitude;
+                    Math.sin((x * frequency) + (phase * speed)) * dynamicAmp;
 
             path.lineTo(x, y);
         }

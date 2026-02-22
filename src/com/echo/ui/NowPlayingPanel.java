@@ -22,73 +22,70 @@ public class NowPlayingPanel extends JPanel {
 
     public NowPlayingPanel() {
 
-        setLayout(new BorderLayout());
-        setBackground(Color.BLACK);
+    setLayout(new OverlayLayout(this));
+    setOpaque(false);
 
-        // ================= VISUALIZER =================
-        JLayeredPane layeredPane = new JLayeredPane();
-layeredPane.setLayout(new OverlayLayout(layeredPane));
+    // ================= VISUALIZER =================
+    visualizer = new LiquidVisualizer();
 
-visualizer = new LiquidVisualizer();
+    // ================= HEART LAYER =================
+    JPanel heartLayer = new JPanel(new BorderLayout());
+    heartLayer.setOpaque(false);
 
-JPanel heartContainer = new JPanel(new BorderLayout());
-heartContainer.setOpaque(false);
+    heartBtn = createCircleButton("♡", 55);
 
-heartBtn = createCircleButton("♡", 55);
+    JPanel topRight = new JPanel(new FlowLayout(FlowLayout.RIGHT, 20, 20));
+    topRight.setOpaque(false);
+    topRight.add(heartBtn);
 
-JPanel topRight = new JPanel(new FlowLayout(FlowLayout.RIGHT, 20, 20));
-topRight.setOpaque(false);
-topRight.add(heartBtn);
+    heartLayer.add(topRight, BorderLayout.NORTH);
 
-heartContainer.add(topRight, BorderLayout.NORTH);
+    // ================= BOTTOM PANEL =================
+    JPanel bottom = new JPanel();
+    bottom.setOpaque(false);
+    bottom.setLayout(new BoxLayout(bottom, BoxLayout.Y_AXIS));
+    bottom.setBorder(BorderFactory.createEmptyBorder(25, 20, 40, 20));
 
-layeredPane.add(heartContainer, Integer.valueOf(1));
-layeredPane.add(visualizer, Integer.valueOf(0));
+    titleLabel = new JLabel("Title");
+    titleLabel.setForeground(Color.WHITE);
+    titleLabel.setFont(new Font("SansSerif", Font.BOLD, 22));
+    titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-add(layeredPane, BorderLayout.CENTER);
+    artistLabel = new JLabel("Artist");
+    artistLabel.setForeground(new Color(220, 220, 220));
+    artistLabel.setFont(new Font("SansSerif", Font.PLAIN, 16));
+    artistLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        // ================= BOTTOM PANEL =================
-        JPanel bottom = new JPanel();
-        bottom.setOpaque(false);
-        bottom.setLayout(new BoxLayout(bottom, BoxLayout.Y_AXIS));
-        bottom.setBorder(BorderFactory.createEmptyBorder(25, 20, 25, 20));
+    bottom.add(Box.createVerticalGlue());
+    bottom.add(titleLabel);
+    bottom.add(Box.createVerticalStrut(6));
+    bottom.add(artistLabel);
+    bottom.add(Box.createVerticalStrut(20));
 
-        titleLabel = new JLabel("Title");
-        titleLabel.setForeground(Color.WHITE);
-        titleLabel.setFont(new Font("SansSerif", Font.BOLD, 22));
-        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+    JPanel controls = new JPanel();
+    controls.setOpaque(false);
+    controls.setLayout(new FlowLayout(FlowLayout.CENTER, 25, 0));
 
-        artistLabel = new JLabel("Artist");
-        artistLabel.setForeground(new Color(220, 220, 220));
-        artistLabel.setFont(new Font("SansSerif", Font.PLAIN, 16));
-        artistLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+    shuffleBtn = createIconButton("⤮");
+    prevBtn = createIconButton("⏮");
+    playBtn = createCircleButton("⏯", 65);
+    nextBtn = createIconButton("⏭");
+    loopBtn = createIconButton("⟲");
 
-        bottom.add(titleLabel);
-        bottom.add(Box.createVerticalStrut(6));
-        bottom.add(artistLabel);
-        bottom.add(Box.createVerticalStrut(20));
+    controls.add(shuffleBtn);
+    controls.add(prevBtn);
+    controls.add(playBtn);
+    controls.add(nextBtn);
+    controls.add(loopBtn);
 
-        // ================= CONTROLS =================
-        JPanel controls = new JPanel();
-        controls.setOpaque(false);
-        controls.setLayout(new FlowLayout(FlowLayout.CENTER, 25, 0));
+    bottom.add(controls);
+    bottom.add(Box.createVerticalStrut(40));
 
-        shuffleBtn = createIconButton("⤮");
-        prevBtn = createIconButton("⏮");
-        playBtn = createCircleButton("⏯", 65);
-        nextBtn = createIconButton("⏭");
-        loopBtn = createIconButton("⟲");
-
-        controls.add(shuffleBtn);
-        controls.add(prevBtn);
-        controls.add(playBtn);
-        controls.add(nextBtn);
-        controls.add(loopBtn);
-
-        bottom.add(controls);
-
-        add(bottom, BorderLayout.SOUTH);
-    }
+    // ================= ADD ORDER (IMPORTANT) =================
+    add(bottom);        // Controls on top
+    add(heartLayer);    // Heart on top of waves
+    add(visualizer);    // Background at bottom
+}
 
     // ================= BUTTON STYLES =================
 

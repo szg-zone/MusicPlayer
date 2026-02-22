@@ -1,12 +1,14 @@
 package com.echo.ui;
 
 import com.echo.model.Song;
+import com.echo.database.MusicDatabase;
 
 import javax.sound.sampled.*;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class MusicPlayerUI extends JFrame {
@@ -20,9 +22,12 @@ public class MusicPlayerUI extends JFrame {
     private AboutPanel aboutPanel;
 
     private List<Song> songs = new ArrayList<>();
+    private List<String> favoritePaths = new ArrayList<>();
+
     private Clip clip;
-    private Song currentSong;
+    private int currentIndex = 0;
     private boolean isPlaying = false;
+    private boolean isLooping = false;
 
     public MusicPlayerUI() {
 
@@ -34,13 +39,13 @@ public class MusicPlayerUI extends JFrame {
 
         createUI();
         loadSongs();
+        loadFavorites();
 
         setVisible(true);
     }
 
     private void createUI() {
 
-        // ================= LEFT NAV =================
         JPanel navPanel = new JPanel();
         navPanel.setBackground(new Color(18, 18, 45));
         navPanel.setPreferredSize(new Dimension(200, getHeight()));
@@ -63,7 +68,6 @@ public class MusicPlayerUI extends JFrame {
 
         add(navPanel, BorderLayout.WEST);
 
-        // ================= MAIN PANEL =================
         cardLayout = new CardLayout();
         mainPanel = new JPanel(cardLayout);
 
@@ -79,30 +83,29 @@ public class MusicPlayerUI extends JFrame {
 
         add(mainPanel, BorderLayout.CENTER);
 
-        // ================= NAV ACTIONS =================
         allBtn.addActionListener(e -> cardLayout.show(mainPanel, "ALL"));
-
         favBtn.addActionListener(e -> {
-            favoritesPanel.loadFavorites(); // refresh list
+            favoritesPanel.loadFavorites();
             cardLayout.show(mainPanel, "FAV");
         });
+        aboutBtn.addActionListener(e -> cardLayout.show(mainPanel, "ABOUT"));
 
-        aboutBtn.addActionListener(e ->
-                cardLayout.show(mainPanel, "ABOUT"));
-
-        // ================= SONG CLICK =================
         allSongsPanel.setSongClickListener(song -> {
-            playSong(song);
+            currentIndex = songs.indexOf(song);
+            playSong(currentIndex);
             nowPlayingPanel.setSong(song);
             cardLayout.show(mainPanel, "NOW");
         });
 
-        // ================= PLAY/PAUSE BUTTON =================
         nowPlayingPanel.setPlayButtonListener(e -> togglePlayPause());
+        nowPlayingPanel.setNextListener(e -> nextSong());
+        nowPlayingPanel.setPreviousListener(e -> previousSong());
+        nowPlayingPanel.setShuffleListener(e -> shuffleSongs());
+        nowPlayingPanel.setLoopListener(e -> toggleLoop());
+        nowPlayingPanel.setHeartListener(e -> toggleFavorite());
     }
 
     private JButton createNavButton(String text) {
-
         JButton btn = new JButton(text);
         btn.setForeground(Color.WHITE);
         btn.setBackground(new Color(30, 30, 70));
@@ -110,17 +113,14 @@ public class MusicPlayerUI extends JFrame {
         btn.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
         btn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
         btn.setAlignmentX(Component.CENTER_ALIGNMENT);
-
         return btn;
     }
 
     private void loadSongs() {
-
         File folder = new File("music");
         if (!folder.exists()) return;
 
         for (File file : folder.listFiles()) {
-
             if (file.getName().toLowerCase().endsWith(".wav")) {
 
                 String name = file.getName().replace(".wav", "");
@@ -136,7 +136,7 @@ public class MusicPlayerUI extends JFrame {
         allSongsPanel.setSongs(songs);
     }
 
-    private void playSong(Song song) {
+    private void playSong(int index) {
 
         try {
 
@@ -145,16 +145,45 @@ public class MusicPlayerUI extends JFrame {
                 clip.close();
             }
 
-            AudioInputStream audioStream =
+            Song song = songs.get(index);
+
+            AudioInputStream originalStream =
                     AudioSystem.getAudioInputStream(song.getFile());
 
+            AudioFormat baseFormat = originalStream.getFormat();
+
+            AudioFormat decodedFormat = new AudioFormat(
+                    AudioFormat.Encoding.PCM_SIGNED,
+                    baseFormat.getSampleRate(),
+                    16,
+                    baseFormat.getChannels(),
+                    baseFormat.getChannels() * 2,
+                    baseFormat.getSampleRate(),
+                    false);
+
+            AudioInputStream decodedStream =
+                    AudioSystem.getAudioInputStream(decodedFormat, originalStream);
+
             clip = AudioSystem.getClip();
-            clip.open(audioStream);
+            clip.open(decodedStream);
             clip.start();
 
-            currentSong = song;
             isPlaying = true;
             nowPlayingPanel.setPlayState(true);
+            nowPlayingPanel.setSong(song);
+            updateHeartIcon();
+
+            clip.addLineListener(event -> {
+                if (event.getType() == LineEvent.Type.STOP &&
+                        clip.getMicrosecondPosition() >= clip.getMicrosecondLength()) {
+
+                    if (isLooping) {
+                        playSong(currentIndex);
+                    } else {
+                        nextSong();
+                    }
+                }
+            });
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -162,7 +191,6 @@ public class MusicPlayerUI extends JFrame {
     }
 
     private void togglePlayPause() {
-
         if (clip == null) return;
 
         if (isPlaying) {
@@ -174,5 +202,56 @@ public class MusicPlayerUI extends JFrame {
         }
 
         isPlaying = !isPlaying;
+    }
+
+    private void nextSong() {
+        if (songs.isEmpty()) return;
+        currentIndex = (currentIndex + 1) % songs.size();
+        playSong(currentIndex);
+    }
+
+    private void previousSong() {
+        if (songs.isEmpty()) return;
+        currentIndex--;
+        if (currentIndex < 0) currentIndex = songs.size() - 1;
+        playSong(currentIndex);
+    }
+
+    private void shuffleSongs() {
+        Collections.shuffle(songs);
+        currentIndex = 0;
+        playSong(currentIndex);
+    }
+
+    private void toggleLoop() {
+        isLooping = !isLooping;
+        nowPlayingPanel.setLoopState(isLooping);
+    }
+
+    private void loadFavorites() {
+        favoritePaths = MusicDatabase.loadFavorites();
+    }
+
+    private void toggleFavorite() {
+        if (songs.isEmpty()) return;
+
+        String path = songs.get(currentIndex).getFile().getAbsolutePath();
+
+        if (favoritePaths.contains(path)) {
+            favoritePaths.remove(path);
+        } else {
+            favoritePaths.add(path);
+        }
+
+        MusicDatabase.saveFavorites(favoritePaths);
+        updateHeartIcon();
+    }
+
+    private void updateHeartIcon() {
+        if (songs.isEmpty()) return;
+
+        String path = songs.get(currentIndex).getFile().getAbsolutePath();
+        boolean liked = favoritePaths.contains(path);
+        nowPlayingPanel.toggleHeart(liked);
     }
 }

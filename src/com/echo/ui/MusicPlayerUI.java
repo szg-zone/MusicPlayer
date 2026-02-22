@@ -21,6 +21,14 @@ public class MusicPlayerUI extends JFrame {
     private FavoritesPanel favoritesPanel;
     private AboutPanel aboutPanel;
 
+    private JPanel miniPlayer;
+    private JLabel miniTitle;
+    private JButton miniPlayBtn;
+    private JSlider miniSlider;
+    private JLabel miniTime;
+
+    private Timer progressTimer;
+
     private List<Song> songs = new ArrayList<>();
     private List<String> favoritePaths = new ArrayList<>();
 
@@ -32,17 +40,20 @@ public class MusicPlayerUI extends JFrame {
     public MusicPlayerUI() {
 
         setTitle("ECHO Music Player");
-        setSize(900, 600);
+        setSize(900, 650);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
         createUI();
+        createMiniPlayer();
         loadSongs();
         loadFavorites();
 
         setVisible(true);
     }
+
+    // ================= UI =================
 
     private void createUI() {
 
@@ -93,7 +104,6 @@ public class MusicPlayerUI extends JFrame {
         allSongsPanel.setSongClickListener(song -> {
             currentIndex = songs.indexOf(song);
             playSong(currentIndex);
-            nowPlayingPanel.setSong(song);
             cardLayout.show(mainPanel, "NOW");
         });
 
@@ -115,6 +125,89 @@ public class MusicPlayerUI extends JFrame {
         btn.setAlignmentX(Component.CENTER_ALIGNMENT);
         return btn;
     }
+
+    // ================= MINI PLAYER =================
+
+    private void createMiniPlayer() {
+
+        miniPlayer = new JPanel(new BorderLayout());
+        miniPlayer.setBackground(new Color(20, 20, 60));
+        miniPlayer.setPreferredSize(new Dimension(getWidth(), 80));
+
+        miniTitle = new JLabel("No song playing");
+        miniTitle.setForeground(Color.WHITE);
+        miniTitle.setBorder(BorderFactory.createEmptyBorder(5, 15, 0, 0));
+
+        miniPlayBtn = new JButton("▶");
+        miniPlayBtn.setFocusPainted(false);
+        miniPlayBtn.setBorderPainted(false);
+        miniPlayBtn.setContentAreaFilled(false);
+        miniPlayBtn.setForeground(Color.WHITE);
+        miniPlayBtn.setFont(new Font("SansSerif", Font.BOLD, 18));
+        miniPlayBtn.addActionListener(e -> togglePlayPause());
+
+        miniSlider = new JSlider();
+        miniSlider.setOpaque(false);
+
+        miniTime = new JLabel("0:00 / 0:00");
+        miniTime.setForeground(Color.WHITE);
+
+        JPanel center = new JPanel(new BorderLayout());
+        center.setOpaque(false);
+        center.add(miniTitle, BorderLayout.NORTH);
+        center.add(miniSlider, BorderLayout.CENTER);
+
+        JPanel right = new JPanel(new FlowLayout());
+        right.setOpaque(false);
+        right.add(miniTime);
+        right.add(miniPlayBtn);
+
+        miniPlayer.add(center, BorderLayout.CENTER);
+        miniPlayer.add(right, BorderLayout.EAST);
+
+        add(miniPlayer, BorderLayout.SOUTH);
+
+        setupSliderControl();
+    }
+
+    private void setupSliderControl() {
+
+        miniSlider.addChangeListener(e -> {
+            if (clip != null && miniSlider.getValueIsAdjusting()) {
+                long newPosition =
+                        (long) ((miniSlider.getValue() / 100.0) *
+                                clip.getMicrosecondLength());
+                clip.setMicrosecondPosition(newPosition);
+            }
+        });
+
+        progressTimer = new Timer(500, e -> {
+            if (clip != null && clip.isOpen()) {
+
+                long current = clip.getMicrosecondPosition();
+                long total = clip.getMicrosecondLength();
+
+                if (total > 0) {
+                    int percent = (int) ((current * 100) / total);
+                    miniSlider.setValue(percent);
+                }
+
+                miniTime.setText(formatTime(current)
+                        + " / " + formatTime(total));
+            }
+        });
+
+        progressTimer.start();
+    }
+
+    private String formatTime(long microseconds) {
+        long seconds = microseconds / 1_000_000;
+        long mins = seconds / 60;
+        long secs = seconds % 60;
+        return String.format("%d:%02d", mins, secs);
+    }
+
+    // ================= AUDIO =================
 
     private void loadSongs() {
         File folder = new File("music");
@@ -162,20 +255,25 @@ public class MusicPlayerUI extends JFrame {
                     false);
 
             AudioInputStream decodedStream =
-                    AudioSystem.getAudioInputStream(decodedFormat, originalStream);
+                    AudioSystem.getAudioInputStream(decodedFormat,
+                            originalStream);
 
             clip = AudioSystem.getClip();
             clip.open(decodedStream);
             clip.start();
 
             isPlaying = true;
-            nowPlayingPanel.setPlayState(true);
+            miniPlayBtn.setText("⏸");
+            miniTitle.setText(song.getTitle() + " - " + song.getArtist());
+
             nowPlayingPanel.setSong(song);
+            nowPlayingPanel.setPlayState(true);
             updateHeartIcon();
 
             clip.addLineListener(event -> {
                 if (event.getType() == LineEvent.Type.STOP &&
-                        clip.getMicrosecondPosition() >= clip.getMicrosecondLength()) {
+                        clip.getMicrosecondPosition() >=
+                                clip.getMicrosecondLength()) {
 
                     if (isLooping) {
                         playSong(currentIndex);
@@ -195,9 +293,11 @@ public class MusicPlayerUI extends JFrame {
 
         if (isPlaying) {
             clip.stop();
+            miniPlayBtn.setText("▶");
             nowPlayingPanel.setPlayState(false);
         } else {
             clip.start();
+            miniPlayBtn.setText("⏸");
             nowPlayingPanel.setPlayState(true);
         }
 
@@ -213,7 +313,8 @@ public class MusicPlayerUI extends JFrame {
     private void previousSong() {
         if (songs.isEmpty()) return;
         currentIndex--;
-        if (currentIndex < 0) currentIndex = songs.size() - 1;
+        if (currentIndex < 0)
+            currentIndex = songs.size() - 1;
         playSong(currentIndex);
     }
 
@@ -228,6 +329,8 @@ public class MusicPlayerUI extends JFrame {
         nowPlayingPanel.setLoopState(isLooping);
     }
 
+    // ================= FAVORITES =================
+
     private void loadFavorites() {
         favoritePaths = MusicDatabase.loadFavorites();
     }
@@ -235,7 +338,8 @@ public class MusicPlayerUI extends JFrame {
     private void toggleFavorite() {
         if (songs.isEmpty()) return;
 
-        String path = songs.get(currentIndex).getFile().getAbsolutePath();
+        String path =
+                songs.get(currentIndex).getFile().getAbsolutePath();
 
         if (favoritePaths.contains(path)) {
             favoritePaths.remove(path);
@@ -250,7 +354,9 @@ public class MusicPlayerUI extends JFrame {
     private void updateHeartIcon() {
         if (songs.isEmpty()) return;
 
-        String path = songs.get(currentIndex).getFile().getAbsolutePath();
+        String path =
+                songs.get(currentIndex).getFile().getAbsolutePath();
+
         boolean liked = favoritePaths.contains(path);
         nowPlayingPanel.toggleHeart(liked);
     }

@@ -266,6 +266,18 @@ public class MusicPlayerUI extends JFrame {
             nowPlayingPanel.updateClip(clip); // IMPORTANT
             updateHeartIcon();
 
+            clip.addLineListener(event -> {
+    if (event.getType() == LineEvent.Type.STOP &&
+            clip.getMicrosecondPosition() >= clip.getMicrosecondLength()) {
+
+        if (isLooping) {
+            playSong(currentIndex);
+        } else {
+            nextSong();
+        }
+    }
+});
+
         } catch (Exception e) {
             e.printStackTrace();
         }

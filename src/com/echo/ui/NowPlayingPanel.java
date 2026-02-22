@@ -25,30 +25,33 @@ public class NowPlayingPanel extends JPanel {
         setLayout(new BorderLayout());
         setBackground(Color.BLACK);
 
-        // ================= VISUALIZER LAYER =================
+        // ================= VISUALIZER =================
         JLayeredPane layeredPane = new JLayeredPane();
-        layeredPane.setPreferredSize(new Dimension(900, 400));
-        layeredPane.setLayout(null);
+layeredPane.setLayout(new OverlayLayout(layeredPane));
 
-        visualizer = new LiquidVisualizer();
-        visualizer.setBounds(0, 0, 900, 400);
+visualizer = new LiquidVisualizer();
 
-        heartBtn = new JButton("\u2661"); // ♡
-        heartBtn.setFont(new Font("SansSerif", Font.BOLD, 18));
-        heartBtn.setFocusPainted(false);
-        heartBtn.setBackground(Color.WHITE);
-        heartBtn.setBounds(820, 25, 50, 50);
+JPanel heartContainer = new JPanel(new BorderLayout());
+heartContainer.setOpaque(false);
 
-        layeredPane.add(visualizer, Integer.valueOf(0));
-        layeredPane.add(heartBtn, Integer.valueOf(1));
+heartBtn = createCircleButton("♡", 55);
 
-        add(layeredPane, BorderLayout.CENTER);
+JPanel topRight = new JPanel(new FlowLayout(FlowLayout.RIGHT, 20, 20));
+topRight.setOpaque(false);
+topRight.add(heartBtn);
+
+heartContainer.add(topRight, BorderLayout.NORTH);
+
+layeredPane.add(heartContainer, Integer.valueOf(1));
+layeredPane.add(visualizer, Integer.valueOf(0));
+
+add(layeredPane, BorderLayout.CENTER);
 
         // ================= BOTTOM PANEL =================
         JPanel bottom = new JPanel();
         bottom.setBackground(new Color(150, 40, 90));
         bottom.setLayout(new BoxLayout(bottom, BoxLayout.Y_AXIS));
-        bottom.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        bottom.setBorder(BorderFactory.createEmptyBorder(25, 20, 25, 20));
 
         titleLabel = new JLabel("Title");
         titleLabel.setForeground(Color.WHITE);
@@ -56,26 +59,25 @@ public class NowPlayingPanel extends JPanel {
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         artistLabel = new JLabel("Artist");
-        artistLabel.setForeground(Color.LIGHT_GRAY);
+        artistLabel.setForeground(new Color(220, 220, 220));
         artistLabel.setFont(new Font("SansSerif", Font.PLAIN, 16));
         artistLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        // ================= CONTROL ROW =================
+        bottom.add(titleLabel);
+        bottom.add(Box.createVerticalStrut(6));
+        bottom.add(artistLabel);
+        bottom.add(Box.createVerticalStrut(20));
+
+        // ================= CONTROLS =================
         JPanel controls = new JPanel();
         controls.setOpaque(false);
-        controls.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 10));
+        controls.setLayout(new FlowLayout(FlowLayout.CENTER, 25, 0));
 
-        shuffleBtn = new JButton("Shuffle");
-        prevBtn = new JButton("Prev");
-        playBtn = new JButton("Pause");
-        nextBtn = new JButton("Next");
-        loopBtn = new JButton("Loop");
-
-        styleControlButton(shuffleBtn);
-        styleControlButton(prevBtn);
-        styleControlButton(playBtn);
-        styleControlButton(nextBtn);
-        styleControlButton(loopBtn);
+        shuffleBtn = createIconButton("⤮");
+        prevBtn = createIconButton("⏮");
+        playBtn = createCircleButton("⏯", 65);
+        nextBtn = createIconButton("⏭");
+        loopBtn = createIconButton("⟲");
 
         controls.add(shuffleBtn);
         controls.add(prevBtn);
@@ -83,64 +85,62 @@ public class NowPlayingPanel extends JPanel {
         controls.add(nextBtn);
         controls.add(loopBtn);
 
-        bottom.add(titleLabel);
-        bottom.add(Box.createVerticalStrut(8));
-        bottom.add(artistLabel);
-        bottom.add(Box.createVerticalStrut(15));
         bottom.add(controls);
 
         add(bottom, BorderLayout.SOUTH);
     }
 
-    private void styleControlButton(JButton button) {
-        button.setFocusPainted(false);
-        button.setBackground(Color.WHITE);
-        button.setFont(new Font("SansSerif", Font.PLAIN, 14));
+    // ================= BUTTON STYLES =================
+
+    private JButton createIconButton(String text) {
+        JButton btn = new JButton(text);
+        btn.setFont(new Font("SansSerif", Font.PLAIN, 22));
+        btn.setForeground(Color.WHITE);
+        btn.setBackground(new Color(150, 40, 90));
+        btn.setBorderPainted(false);
+        btn.setFocusPainted(false);
+        btn.setContentAreaFilled(false);
+        return btn;
     }
 
-    // ================= SET SONG =================
+    private JButton createCircleButton(String text, int size) {
+        JButton btn = new JButton(text);
+        btn.setFont(new Font("SansSerif", Font.BOLD, 22));
+        btn.setForeground(new Color(150, 40, 90));
+        btn.setBackground(Color.WHITE);
+        btn.setFocusPainted(false);
+        btn.setBorderPainted(false);
+        btn.setPreferredSize(new Dimension(size, size));
+        btn.setMaximumSize(new Dimension(size, size));
+        btn.setMinimumSize(new Dimension(size, size));
+        return btn;
+    }
+
+    // ================= STATE METHODS =================
+
     public void setSong(Song song) {
         titleLabel.setText(song.getTitle());
         artistLabel.setText(song.getArtist());
     }
 
-    // ================= PLAY STATE =================
     public void setPlayState(boolean playing) {
-        playBtn.setText(playing ? "Pause" : "Play");
+        playBtn.setText(playing ? "⏸" : "▶");
     }
 
-    // ================= LOOP STATE =================
     public void setLoopState(boolean looping) {
-        loopBtn.setBackground(looping ? Color.GREEN : Color.WHITE);
+        loopBtn.setForeground(looping ? Color.GREEN : Color.WHITE);
     }
 
-    // ================= HEART TOGGLE =================
     public void toggleHeart(boolean liked) {
-        heartBtn.setText(liked ? "\u2764" : "\u2661");
+        heartBtn.setText(liked ? "❤" : "♡");
     }
 
     // ================= LISTENER HOOKS =================
-    public void setPlayButtonListener(ActionListener l) {
-        playBtn.addActionListener(l);
-    }
 
-    public void setNextListener(ActionListener l) {
-        nextBtn.addActionListener(l);
-    }
-
-    public void setPreviousListener(ActionListener l) {
-        prevBtn.addActionListener(l);
-    }
-
-    public void setShuffleListener(ActionListener l) {
-        shuffleBtn.addActionListener(l);
-    }
-
-    public void setLoopListener(ActionListener l) {
-        loopBtn.addActionListener(l);
-    }
-
-    public void setHeartListener(ActionListener l) {
-        heartBtn.addActionListener(l);
-    }
+    public void setPlayButtonListener(ActionListener l) { playBtn.addActionListener(l); }
+    public void setNextListener(ActionListener l) { nextBtn.addActionListener(l); }
+    public void setPreviousListener(ActionListener l) { prevBtn.addActionListener(l); }
+    public void setShuffleListener(ActionListener l) { shuffleBtn.addActionListener(l); }
+    public void setLoopListener(ActionListener l) { loopBtn.addActionListener(l); }
+    public void setHeartListener(ActionListener l) { heartBtn.addActionListener(l); }
 }

@@ -49,7 +49,7 @@ add(layeredPane, BorderLayout.CENTER);
 
         // ================= BOTTOM PANEL =================
         JPanel bottom = new JPanel();
-        bottom.setBackground(new Color(150, 40, 90));
+        bottom.setOpaque(false);
         bottom.setLayout(new BoxLayout(bottom, BoxLayout.Y_AXIS));
         bottom.setBorder(BorderFactory.createEmptyBorder(25, 20, 25, 20));
 

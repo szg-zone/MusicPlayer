@@ -9,11 +9,10 @@ public class LiquidVisualizer extends JPanel {
     private double phase = 0;
 
     public LiquidVisualizer() {
-
         setOpaque(false);
 
         Timer timer = new Timer(16, e -> {
-            phase += 0.05;
+            phase += 0.02;
             repaint();
         });
 
@@ -28,25 +27,42 @@ public class LiquidVisualizer extends JPanel {
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                 RenderingHints.VALUE_ANTIALIAS_ON);
 
-        drawWave(g2, getHeight() - 200, 40, 0.02,
-                new Color(140, 60, 200, 180));
+        int w = getWidth();
+        int h = getHeight();
 
-        drawWave(g2, getHeight() - 170, 30, 0.025,
-                new Color(120, 40, 170, 180));
+        // === Background gradient (dark top → purple mid → pink bottom)
+        GradientPaint bg = new GradientPaint(
+                0, 0, new Color(10, 10, 40),
+                0, h, new Color(150, 40, 90)
+        );
+        g2.setPaint(bg);
+        g2.fillRect(0, 0, w, h);
 
-        drawWave(g2, getHeight() - 140, 20, 0.03,
-                new Color(90, 20, 140, 200));
+        // === Draw waves (3 thick layers)
+
+        drawWave(g2, h * 0.55, 80, 0.015,
+                new Color(150, 80, 220, 200));
+
+        drawWave(g2, h * 0.60, 60, 0.02,
+                new Color(120, 50, 190, 220));
+
+        drawWave(g2, h * 0.65, 45, 0.025,
+                new Color(90, 30, 150, 240));
     }
 
-    private void drawWave(Graphics2D g2, int baseY,
-                          int amplitude,
+    private void drawWave(Graphics2D g2,
+                          double baseY,
+                          double amplitude,
                           double frequency,
                           Color color) {
 
-        Path2D path = new Path2D.Double();
-        path.moveTo(0, getHeight());
+        int w = getWidth();
+        int h = getHeight();
 
-        for (int x = 0; x <= getWidth(); x++) {
+        Path2D path = new Path2D.Double();
+        path.moveTo(0, h);
+
+        for (int x = 0; x <= w; x++) {
 
             double y = baseY +
                     Math.sin((x * frequency) + phase) * amplitude;
@@ -54,7 +70,7 @@ public class LiquidVisualizer extends JPanel {
             path.lineTo(x, y);
         }
 
-        path.lineTo(getWidth(), getHeight());
+        path.lineTo(w, h);
         path.closePath();
 
         g2.setColor(color);

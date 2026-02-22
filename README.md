@@ -1,10 +1,23 @@
 # 🎧 ECHO Music Player
 
-[![GitHub Stars](https://img.shields.io/github/stars/szg-zone/MusicPlayer.svg?style=social)](https://github.com/szg-zone/MusicPlayer)
-[![GitHub Forks](https://img.shields.io/github/forks/szg-zone/MusicPlayer.svg?style=social)](https://github.com/szg-zone/MusicPlayer)
-[![GitHub Issues](https://img.shields.io/github/issues/szg-zone/MusicPlayer.svg)](https://github.com/szg-zone/MusicPlayer/issues)
-[![License](https://img.shields.io/github/license/szg-zone/MusicPlayer.svg)](LICENSE)
+<p align="center">
+  <img src="https://img.shields.io/badge/Java-17-blue?style=for-the-badge&logo=java" />
+  <img src="https://img.shields.io/badge/Desktop-App-orange?style=for-the-badge" />
+</p>
 
+<p align="center">
+  <a href="https://github.com/szg-zone/MusicPlayer/stargazers">
+    <img src="https://img.shields.io/github/stars/szg-zone/MusicPlayer?style=social" />
+  </a>
+  <a href="https://github.com/szg-zone/MusicPlayer/network/members">
+    <img src="https://img.shields.io/github/forks/szg-zone/MusicPlayer?style=social" />
+  </a>
+  <a href="https://github.com/szg-zone/MusicPlayer/issues">
+    <img src="https://img.shields.io/github/issues/szg-zone/MusicPlayer" />
+  </a>
+</p>
+
+---
 
 ECHO is a modern desktop music player built with Java Swing. It features a clean user interface, multiple dynamic audio visualizers, and a file-based favorites system.
 

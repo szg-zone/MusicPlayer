@@ -1,14 +1,17 @@
 package com.echo.ui;
 
+import javax.sound.sampled.Clip;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.Path2D;
 
-public class LiquidVisualizer extends JPanel {
+public class LiquidVisualizer extends JPanel implements Visualizer {
 
     private double phase = 0;
+    private Clip clip;
 
     public LiquidVisualizer() {
+
         setOpaque(false);
 
         Timer timer = new Timer(16, e -> {
@@ -17,6 +20,11 @@ public class LiquidVisualizer extends JPanel {
         });
 
         timer.start();
+    }
+
+    @Override
+    public void setClip(Clip clip) {
+        this.clip = clip;
     }
 
     @Override
@@ -30,7 +38,6 @@ public class LiquidVisualizer extends JPanel {
         int w = getWidth();
         int h = getHeight();
 
-        // ===== FULL BACKGROUND GRADIENT =====
         GradientPaint bg = new GradientPaint(
                 0, 0, new Color(10, 10, 40),
                 0, h, new Color(150, 40, 90)
@@ -38,7 +45,6 @@ public class LiquidVisualizer extends JPanel {
         g2.setPaint(bg);
         g2.fillRect(0, 0, w, h);
 
-        // ===== WAVES =====
         drawWave(g2, h * 0.55, 80, 0.012,
                 new Color(150, 80, 220, 180), 1.0);
 

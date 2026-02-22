@@ -2,6 +2,7 @@ package com.echo.ui;
 
 import com.echo.model.Song;
 
+import javax.sound.sampled.Clip;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
@@ -18,17 +19,19 @@ public class NowPlayingPanel extends JPanel {
     private JButton loopBtn;
     private JButton heartBtn;
 
-    private LiquidVisualizer visualizer;
+    private Visualizer visualizer;
+    private JPanel visualContainer;
 
     public NowPlayingPanel() {
 
         setLayout(new OverlayLayout(this));
         setOpaque(false);
 
-        // ================= VISUALIZER (BACKGROUND) =================
-        visualizer = new LiquidVisualizer();
+        visualContainer = new JPanel(new BorderLayout());
+        visualContainer.setOpaque(false);
 
-        // ================= HEART BUTTON LAYER =================
+        setVisualizer("LIQUID");
+
         JPanel heartLayer = new JPanel(new BorderLayout());
         heartLayer.setOpaque(false);
 
@@ -40,7 +43,6 @@ public class NowPlayingPanel extends JPanel {
 
         heartLayer.add(topRight, BorderLayout.NORTH);
 
-        // ================= BOTTOM CONTENT =================
         JPanel bottom = new JPanel(new BorderLayout());
         bottom.setOpaque(false);
         bottom.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
@@ -80,17 +82,33 @@ public class NowPlayingPanel extends JPanel {
         controls.add(loopBtn);
 
         content.add(controls);
-
-        // Anchor to bottom
         bottom.add(content, BorderLayout.SOUTH);
 
-        // ================= LAYER ORDER =================
-        add(bottom);      // top layer (controls)
-        add(heartLayer);  // middle layer (heart)
-        add(visualizer);  // bottom layer (waves)
+        add(bottom);
+        add(heartLayer);
+        add(visualContainer);
     }
 
-    // ================= BUTTON STYLES =================
+    public void setVisualizer(String type) {
+
+        visualContainer.removeAll();
+
+        if (type.equals("LIQUID"))
+            visualizer = new LiquidVisualizer();
+        else if (type.equals("BAR"))
+            visualizer = new AudioVisualizer();
+        else
+            visualizer = new LineCircleVisualizer();
+
+        visualContainer.add((Component) visualizer);
+        visualContainer.revalidate();
+        visualContainer.repaint();
+    }
+
+    public void updateClip(Clip clip) {
+        if (visualizer != null)
+            visualizer.setClip(clip);
+    }
 
     private JButton createIconButton(String text) {
         JButton btn = new JButton(text);
@@ -110,12 +128,8 @@ public class NowPlayingPanel extends JPanel {
         btn.setFocusPainted(false);
         btn.setBorderPainted(false);
         btn.setPreferredSize(new Dimension(size, size));
-        btn.setMaximumSize(new Dimension(size, size));
-        btn.setMinimumSize(new Dimension(size, size));
         return btn;
     }
-
-    // ================= STATE METHODS =================
 
     public void setSong(Song song) {
         titleLabel.setText(song.getTitle());
@@ -133,8 +147,6 @@ public class NowPlayingPanel extends JPanel {
     public void toggleHeart(boolean liked) {
         heartBtn.setText(liked ? "❤" : "♡");
     }
-
-    // ================= LISTENER HOOKS =================
 
     public void setPlayButtonListener(ActionListener l) { playBtn.addActionListener(l); }
     public void setNextListener(ActionListener l) { nextBtn.addActionListener(l); }

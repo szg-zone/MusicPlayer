@@ -20,6 +20,7 @@ public class MusicPlayerUI extends JFrame {
     private NowPlayingPanel nowPlayingPanel;
     private FavoritesPanel favoritesPanel;
     private AboutPanel aboutPanel;
+    private PreferencesPanel preferencesPanel; // NEW
 
     private JPanel miniPlayer;
     private JLabel miniTitle;
@@ -71,11 +72,13 @@ public class MusicPlayerUI extends JFrame {
         JButton allBtn = createNavButton("All Songs");
         JButton favBtn = createNavButton("Favorites");
         JButton aboutBtn = createNavButton("About");
+        JButton prefBtn = createNavButton("Preferences"); // NEW
 
         navPanel.add(logo);
         navPanel.add(allBtn);
         navPanel.add(favBtn);
         navPanel.add(aboutBtn);
+        navPanel.add(prefBtn); // NEW
 
         add(navPanel, BorderLayout.WEST);
 
@@ -86,20 +89,27 @@ public class MusicPlayerUI extends JFrame {
         nowPlayingPanel = new NowPlayingPanel();
         favoritesPanel = new FavoritesPanel();
         aboutPanel = new AboutPanel();
+        preferencesPanel = new PreferencesPanel(nowPlayingPanel); // NEW
 
         mainPanel.add(allSongsPanel, "ALL");
         mainPanel.add(nowPlayingPanel, "NOW");
         mainPanel.add(favoritesPanel, "FAV");
         mainPanel.add(aboutPanel, "ABOUT");
+        mainPanel.add(preferencesPanel, "PREF"); // NEW
 
         add(mainPanel, BorderLayout.CENTER);
 
         allBtn.addActionListener(e -> cardLayout.show(mainPanel, "ALL"));
+
         favBtn.addActionListener(e -> {
             favoritesPanel.loadFavorites();
             cardLayout.show(mainPanel, "FAV");
         });
+
         aboutBtn.addActionListener(e -> cardLayout.show(mainPanel, "ABOUT"));
+
+        prefBtn.addActionListener(e -> // NEW
+                cardLayout.show(mainPanel, "PREF"));
 
         allSongsPanel.setSongClickListener(song -> {
             currentIndex = songs.indexOf(song);
@@ -240,26 +250,11 @@ public class MusicPlayerUI extends JFrame {
 
             Song song = songs.get(index);
 
-            AudioInputStream originalStream =
+            AudioInputStream audioStream =
                     AudioSystem.getAudioInputStream(song.getFile());
 
-            AudioFormat baseFormat = originalStream.getFormat();
-
-            AudioFormat decodedFormat = new AudioFormat(
-                    AudioFormat.Encoding.PCM_SIGNED,
-                    baseFormat.getSampleRate(),
-                    16,
-                    baseFormat.getChannels(),
-                    baseFormat.getChannels() * 2,
-                    baseFormat.getSampleRate(),
-                    false);
-
-            AudioInputStream decodedStream =
-                    AudioSystem.getAudioInputStream(decodedFormat,
-                            originalStream);
-
             clip = AudioSystem.getClip();
-            clip.open(decodedStream);
+            clip.open(audioStream);
             clip.start();
 
             isPlaying = true;
@@ -268,20 +263,8 @@ public class MusicPlayerUI extends JFrame {
 
             nowPlayingPanel.setSong(song);
             nowPlayingPanel.setPlayState(true);
+            nowPlayingPanel.updateClip(clip); // IMPORTANT
             updateHeartIcon();
-
-            clip.addLineListener(event -> {
-                if (event.getType() == LineEvent.Type.STOP &&
-                        clip.getMicrosecondPosition() >=
-                                clip.getMicrosecondLength()) {
-
-                    if (isLooping) {
-                        playSong(currentIndex);
-                    } else {
-                        nextSong();
-                    }
-                }
-            });
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -329,8 +312,6 @@ public class MusicPlayerUI extends JFrame {
         nowPlayingPanel.setLoopState(isLooping);
     }
 
-    // ================= FAVORITES =================
-
     private void loadFavorites() {
         favoritePaths = MusicDatabase.loadFavorites();
     }
@@ -341,11 +322,10 @@ public class MusicPlayerUI extends JFrame {
         String path =
                 songs.get(currentIndex).getFile().getAbsolutePath();
 
-        if (favoritePaths.contains(path)) {
+        if (favoritePaths.contains(path))
             favoritePaths.remove(path);
-        } else {
+        else
             favoritePaths.add(path);
-        }
 
         MusicDatabase.saveFavorites(favoritePaths);
         updateHeartIcon();

@@ -22,70 +22,73 @@ public class NowPlayingPanel extends JPanel {
 
     public NowPlayingPanel() {
 
-    setLayout(new OverlayLayout(this));
-    setOpaque(false);
+        setLayout(new OverlayLayout(this));
+        setOpaque(false);
 
-    // ================= VISUALIZER =================
-    visualizer = new LiquidVisualizer();
+        // ================= VISUALIZER (BACKGROUND) =================
+        visualizer = new LiquidVisualizer();
 
-    // ================= HEART LAYER =================
-    JPanel heartLayer = new JPanel(new BorderLayout());
-    heartLayer.setOpaque(false);
+        // ================= HEART BUTTON LAYER =================
+        JPanel heartLayer = new JPanel(new BorderLayout());
+        heartLayer.setOpaque(false);
 
-    heartBtn = createCircleButton("♡", 55);
+        heartBtn = createCircleButton("♡", 55);
 
-    JPanel topRight = new JPanel(new FlowLayout(FlowLayout.RIGHT, 20, 20));
-    topRight.setOpaque(false);
-    topRight.add(heartBtn);
+        JPanel topRight = new JPanel(new FlowLayout(FlowLayout.RIGHT, 20, 20));
+        topRight.setOpaque(false);
+        topRight.add(heartBtn);
 
-    heartLayer.add(topRight, BorderLayout.NORTH);
+        heartLayer.add(topRight, BorderLayout.NORTH);
 
-    // ================= BOTTOM PANEL =================
-    JPanel bottom = new JPanel();
-    bottom.setOpaque(false);
-    bottom.setLayout(new BoxLayout(bottom, BoxLayout.Y_AXIS));
-    bottom.setBorder(BorderFactory.createEmptyBorder(25, 20, 40, 20));
+        // ================= BOTTOM CONTENT =================
+        JPanel bottom = new JPanel(new BorderLayout());
+        bottom.setOpaque(false);
+        bottom.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
 
-    titleLabel = new JLabel("Title");
-    titleLabel.setForeground(Color.WHITE);
-    titleLabel.setFont(new Font("SansSerif", Font.BOLD, 22));
-    titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        JPanel content = new JPanel();
+        content.setOpaque(false);
+        content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
 
-    artistLabel = new JLabel("Artist");
-    artistLabel.setForeground(new Color(220, 220, 220));
-    artistLabel.setFont(new Font("SansSerif", Font.PLAIN, 16));
-    artistLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        titleLabel = new JLabel("Title");
+        titleLabel.setForeground(Color.WHITE);
+        titleLabel.setFont(new Font("SansSerif", Font.BOLD, 22));
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-    bottom.add(Box.createVerticalGlue());
-    bottom.add(titleLabel);
-    bottom.add(Box.createVerticalStrut(6));
-    bottom.add(artistLabel);
-    bottom.add(Box.createVerticalStrut(20));
+        artistLabel = new JLabel("Artist");
+        artistLabel.setForeground(new Color(220, 220, 220));
+        artistLabel.setFont(new Font("SansSerif", Font.PLAIN, 16));
+        artistLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-    JPanel controls = new JPanel();
-    controls.setOpaque(false);
-    controls.setLayout(new FlowLayout(FlowLayout.CENTER, 25, 0));
+        content.add(titleLabel);
+        content.add(Box.createVerticalStrut(6));
+        content.add(artistLabel);
+        content.add(Box.createVerticalStrut(20));
 
-    shuffleBtn = createIconButton("⤮");
-    prevBtn = createIconButton("⏮");
-    playBtn = createCircleButton("⏯", 65);
-    nextBtn = createIconButton("⏭");
-    loopBtn = createIconButton("⟲");
+        JPanel controls = new JPanel(new FlowLayout(FlowLayout.CENTER, 25, 0));
+        controls.setOpaque(false);
 
-    controls.add(shuffleBtn);
-    controls.add(prevBtn);
-    controls.add(playBtn);
-    controls.add(nextBtn);
-    controls.add(loopBtn);
+        shuffleBtn = createIconButton("⤮");
+        prevBtn = createIconButton("⏮");
+        playBtn = createCircleButton("⏯", 65);
+        nextBtn = createIconButton("⏭");
+        loopBtn = createIconButton("⟲");
 
-    bottom.add(controls);
-    bottom.add(Box.createVerticalStrut(40));
+        controls.add(shuffleBtn);
+        controls.add(prevBtn);
+        controls.add(playBtn);
+        controls.add(nextBtn);
+        controls.add(loopBtn);
 
-    // ================= ADD ORDER (IMPORTANT) =================
-    add(bottom);        // Controls on top
-    add(heartLayer);    // Heart on top of waves
-    add(visualizer);    // Background at bottom
-}
+        content.add(controls);
+
+        // Anchor to bottom
+        bottom.add(content, BorderLayout.SOUTH);
+
+        // ================= LAYER ORDER =================
+        add(bottom);      // top layer (controls)
+        add(heartLayer);  // middle layer (heart)
+        add(visualizer);  // bottom layer (waves)
+    }
 
     // ================= BUTTON STYLES =================
 
@@ -93,10 +96,9 @@ public class NowPlayingPanel extends JPanel {
         JButton btn = new JButton(text);
         btn.setFont(new Font("SansSerif", Font.PLAIN, 22));
         btn.setForeground(Color.WHITE);
-        btn.setBackground(new Color(150, 40, 90));
+        btn.setContentAreaFilled(false);
         btn.setBorderPainted(false);
         btn.setFocusPainted(false);
-        btn.setContentAreaFilled(false);
         return btn;
     }
 

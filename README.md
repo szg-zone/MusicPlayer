@@ -1,5 +1,10 @@
 # 🎧 ECHO Music Player
-[![Ask DeepWiki](https://devin.ai/assets/askdeepwiki.png)](https://deepwiki.com/szg-zone/MusicPlayer)
+
+[![GitHub Stars](https://img.shields.io/github/stars/szg-zone/MusicPlayer.svg?style=social)](https://github.com/szg-zone/MusicPlayer)
+[![GitHub Forks](https://img.shields.io/github/forks/szg-zone/MusicPlayer.svg?style=social)](https://github.com/szg-zone/MusicPlayer)
+[![GitHub Issues](https://img.shields.io/github/issues/szg-zone/MusicPlayer.svg)](https://github.com/szg-zone/MusicPlayer/issues)
+[![License](https://img.shields.io/github/license/szg-zone/MusicPlayer.svg)](LICENSE)
+
 
 ECHO is a modern desktop music player built with Java Swing. It features a clean user interface, multiple dynamic audio visualizers, and a file-based favorites system.
 
@@ -93,3 +98,4 @@ java -cp out com.echo.Main
 - **Java AWT (Abstract Window Toolkit)**: Used for `Graphics2D` rendering in the audio visualizers.
 - **Java Sound API**: For audio playback of `.wav` files.
 - **File I/O**: For persisting user favorites locally.
+
